@@ -5,6 +5,22 @@ library(tidyverse)
 library(plotly)
 
 
+
+
+leitura_modelos <- function(c){
+    readRDS(paste0('modelos aluguel/',c,'.rds'))
+}
+lapply(bairros, leitura_modelos,USE.NAMES=T)
+
+modelo <- readRDS('modelos aluguel/Asa Norte.rds')
+
+
+
+
+
+
+
+
 bairros <- c("Noroeste","Asa Norte","Asa Sul","Lago Norte","Lago Sul")
 opcoes <- c('Aluguel',"Venda")
 
@@ -16,11 +32,15 @@ titulo <- dashboardHeader(title = 'Imóveis do wimoveis (prototipo)')
 
 
 menu_lateral <-dashboardSidebar(sidebarMenu(
+    #menuItem('Aluguel',tabName = 'aluguel'),
+    #menuItem('Compra e Venda',tabName = 'venda'),
     selectInput('bairro', 'Escolha o bairro', choices = bairros),
     radioButtons('procura', 'O que você procura?', choices = opcoes),
     sliderInput('quartos','Número de quartos:',min = 1,max=max(analise$quartos,na.rm = T),value=4),
     #sliderInput('meter','Metragem:',min = min(analise$area_util_m2,na.rm = T),max=max(analise$area_util_m2,na.rm = T),value=50)
     numericInput('meter','Metragem:',min = min(analise$area_util_m2,na.rm = T),max=max(analise$area_util_m2,na.rm = T),value=50),
+    numericInput('condominio','Condominio:',min = min(analise$condominio,na.rm = T),max=100000,value=1000),
+    numericInput('vagas','N° de Vagas:',min = 1,max=max(analise$vagas,na.rm = T),value=1),
     checkboxGroupInput('status','status(não implementado)',choices =c('Em processo','Aprovado','Edital') )
     
 ))
@@ -29,7 +49,8 @@ menu_lateral <-dashboardSidebar(sidebarMenu(
 corpo <- dashboardBody(
     fluidRow(
     box(plotlyOutput('precos')),
-    box(plotlyOutput('metragem'))),
+    box(plotlyOutput('metragem')),
+    infoBoxOutput('estima')),
     leafletOutput('mapa')
 )
 
@@ -46,18 +67,26 @@ server <- function(input, output) {
     })
     
     output$precos <- renderPlotly({
-        plot_ly(data = banco_filtro(),y=~get(input$procura),type = 'bar') %>%
+        plot_ly(data = banco_filtro(),x=~get(input$procura),type = 'bar') %>%
             layout(title= 'Distribuição dos preços',
                    xaxis=list(title=paste('Valor de',input$procura ))
                    )
     })
     
     output$metragem <- renderPlotly({
-        plot_ly(data = banco_filtro(),y=~area_util_m2,type = 'bar') %>%
+        plot_ly(data = banco_filtro(),x=~area_util_m2,type = 'bar') %>%
             layout(title= 'Distribuição de metragem',
                    xaxis=list(title='Área Útil'))
             
     })
+    
+    
+   
+    
+    output$estima <- renderInfoBox({
+        infoBox("Preço Estimado",
+                paste('R$',format(unname(predict.lm(modelo,newdata=list(`Area Util`=input$meter,Condominio=input$condominio,Vagas=input$vagas))) %>% round(2),nsmall = 2,decimal.mark = ','))
+    )})
     
     output$mapa <-  renderLeaflet({
         suppressWarnings({leaflet(banco_filtro()) %>%
