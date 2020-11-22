@@ -6,7 +6,7 @@ library(plotly)
 
 
 
-
+#######################carregamento dos modelos########################### 
 
 modelo_aluguel_asa_norte <- readRDS('modelos aluguel/Asa Norte.rds')
 modelo_aluguel_asa_sul <- readRDS('modelos aluguel/Asa Sul.rds')
@@ -79,7 +79,7 @@ modelo_aluguel_lago_sul %>% summary()
 
 
 
-
+#####################carregamento do banco#####################
 
 
 
@@ -95,18 +95,25 @@ analise <- readRDS('banco_shiny.RDS') %>% mutate(ID=1:n())
 titulo <- dashboardHeader(title = 'Build Parcial 2')
 
 
+
+
+##################Menu lateral######################
+
 menu_lateral <- dashboardSidebar(
     sidebarMenu(
         id = "tabs",
         menuItem('Exploratória', tabName = 'exp'),
         menuItem('Estimação', tabName = 'est')
     ),
+    
+    radioButtons('procura', 'O que você procura?', choices = opcoes),
+    
         conditionalPanel(
             "input.tabs == 'exp'",
             #menuItem('Aluguel',tabName = 'aluguel'),
             #menuItem('Compra e Venda',tabName = 'venda'),
             selectInput('bairro', 'Escolha o bairro', choices = bairros),
-            radioButtons('procura', 'O que você procura?', choices = opcoes),
+            
             sliderInput(
                 'quartos',
                 'Número de quartos:',
@@ -223,30 +230,42 @@ menu_lateral <- dashboardSidebar(
 
 
 
+
+################# corpo do dashboard ########################
 corpo <- dashboardBody(
     tabItems(
+        
+        #exploratoria
         tabItem('exp',
                 fluidRow(
                     box(plotlyOutput('precos')),
                     box(plotlyOutput('metragem')),
                     leafletOutput('mapa')
                 )),
+        
+        
+        #estimacao
         tabItem('est',
-                infoBoxOutput('estima'))
-        ))
+                fluidRow(
+                    infoBoxOutput('estima',width=6),
+                    infoBoxOutput('compara',width=6),
+                )
+        )))
 
 
 
 
 
 
+
+####################### back end ######################################
 server <- function(input, output) {
     banco_filtro <- reactive({
         filter(analise,bairro==input$bairro & str_detect(tipo_anuncio,input$procura) & quartos<=input$quartos & area_util_m2<=input$meter)
     })
     
     output$precos <- renderPlotly({
-        plot_ly(data = banco_filtro(),x=~get(input$procura),type = 'histogram',bingroup=1,bargap=0.1) %>%
+        plot_ly(data = banco_filtro(),x=~get(input$procura),type = 'histogram',bingroup=1) %>%
             layout(title= 'Distribuição dos preços',
                    xaxis=list(title=paste('Valor de',input$procura,"em Reais" )),
                    bargap=0.1
@@ -254,7 +273,7 @@ server <- function(input, output) {
     })
     
     output$metragem <- renderPlotly({
-        plot_ly(data = banco_filtro(),x=~area_util_m2,type = 'histogram',bingroup=1,bargap=0.1) %>%
+        plot_ly(data = banco_filtro(),x=~area_util_m2,type = 'histogram',bingroup=1) %>%
             layout(title= 'Distribuição de metragem',
                    xaxis=list(title='Área Útil em metros quadrados'),
                    bargap=0.1)
@@ -279,9 +298,27 @@ server <- function(input, output) {
    
     
     output$estima <- renderInfoBox({
-        infoBox("Preço Estimado",
-                paste('R$',suppressWarnings({format(data_est(),decimal.mark = ',',big.mark = '.')}))
-    )})
+        infoBox(tags$p("Preço Estimado",style="font-size: 120%;",),
+                tags$p(
+                paste('R$',suppressWarnings({format(data_est(),decimal.mark = ',',big.mark = '.')})),
+                style="font-size: 150%;"
+                )
+    
+    
+                
+                )})
+    
+    
+    output$compara <- renderInfoBox({
+        infoBox(tags$p("Comparação",style="font-size: 120%;height: 100px;"),
+                tags$p(
+                paste('R$',suppressWarnings({format(abs(data_est()-input$alug),decimal.mark = ',',big.mark = '.')})),
+                style="font-size: 150%;"
+                )
+    
+    
+                
+                )})
     
     output$mapa <-  renderLeaflet({
         suppressWarnings({leaflet(banco_filtro()) %>%
@@ -293,6 +330,7 @@ server <- function(input, output) {
 
 }
 
-# Run the application 
+######### rodar o shiny ###############
 ui <- dashboardPage(header=titulo,sidebar=menu_lateral,body=corpo)
 shinyApp(ui = ui, server = server)
+
