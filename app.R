@@ -1,8 +1,8 @@
 library(shiny)
-library(leaflet)
-library(shinydashboard)
-library(tidyverse)
-library(plotly)
+require(leaflet)
+require(shinydashboard)
+require(tidyverse)
+require(plotly)
 
 
 
@@ -15,6 +15,8 @@ modelo_aluguel_lago_sul <- readRDS('modelos aluguel/Lago Sul.rds')
 modelo_aluguel_asa_norte %>% summary()
 modelo_aluguel_asa_sul %>% summary()
 modelo_aluguel_lago_sul %>% summary()
+
+
 
 ##NÃO RODAR, EM CONSTRUÇÃo##
 # modelo_aluguel <- list()
@@ -91,7 +93,7 @@ opcoes <- c('Aluguel',"Venda")
 analise <- readRDS('banco_shiny.RDS') %>% mutate(ID=1:n())
 
 
-
+############# Header do dashboard #####################
 titulo <- dashboardHeader(title = 'Build Parcial 2')
 
 
@@ -110,8 +112,6 @@ menu_lateral <- dashboardSidebar(
     
         conditionalPanel(
             "input.tabs == 'exp'",
-            #menuItem('Aluguel',tabName = 'aluguel'),
-            #menuItem('Compra e Venda',tabName = 'venda'),
             selectInput('bairro', 'Escolha o bairro', choices = bairros),
             
             sliderInput(
@@ -166,6 +166,8 @@ menu_lateral <- dashboardSidebar(
                 selected = "norte"
             )
         ),
+    
+    # asa norte
         conditionalPanel(
             condition = "input.local == 'norte' && input.tabs == 'est'",
             numericInput("m2", "Metragem", value = 50, min =
@@ -191,9 +193,9 @@ menu_lateral <- dashboardSidebar(
                 min = 0
             )
         ),
-        # Wrap the file input in a conditional panel
+    
+    # asa sul
         conditionalPanel(
-            # The condition should be that the user selects
             condition = "input.local == 'sul' && input.tabs == 'est'",
             numericInput("quarto", "Número de Quartos", value =
                              2, min = 0),
@@ -210,8 +212,9 @@ menu_lateral <- dashboardSidebar(
                 min = 0
             )
         ),
+    
+    # lago sul
         conditionalPanel(
-            # The condition should be that the user selects
             condition = "input.local == 'lago' && input.tabs == 'est'",
             numericInput("m2", "Metragem", value = 50, min =
                              0),
@@ -260,6 +263,9 @@ corpo <- dashboardBody(
 
 ####################### back end ######################################
 server <- function(input, output) {
+    
+    #exploratoria
+    
     banco_filtro <- reactive({
         filter(analise,bairro==input$bairro & str_detect(tipo_anuncio,input$procura) & quartos<=input$quartos & area_util_m2<=input$meter)
     })
@@ -295,8 +301,19 @@ server <- function(input, output) {
         )
     })
     
-   
     
+    
+    output$mapa <-  renderLeaflet({
+        suppressWarnings({leaflet(banco_filtro()) %>%
+                addTiles() %>%
+                addMarkers(lng = ~longitude,
+                           lat = ~latitude,
+                           popup = ~paste('R$',get(input$procura),'com',area_util_m2,'metros quadrados','ID',ID))})
+    })
+    
+    
+    
+    #estimacao
     output$estima <- renderInfoBox({
         infoBox(tags$p("Preço Estimado",style="font-size: 120%;",),
                 tags$p(
@@ -310,7 +327,7 @@ server <- function(input, output) {
     
     
     output$compara <- renderInfoBox({
-        infoBox(tags$p("Comparação",style="font-size: 120%;height: 100px;"),
+        infoBox(tags$p("Comparação",style="font-size: 120%;"),
                 tags$p(
                 paste('R$',suppressWarnings({format(abs(data_est()-input$alug),decimal.mark = ',',big.mark = '.')})),
                 style="font-size: 150%;"
@@ -320,13 +337,7 @@ server <- function(input, output) {
                 
                 )})
     
-    output$mapa <-  renderLeaflet({
-        suppressWarnings({leaflet(banco_filtro()) %>%
-            addTiles() %>%
-            addMarkers(lng = ~longitude,
-                       lat = ~latitude,
-                       popup = ~paste('R$',get(input$procura),'com',area_util_m2,'metros quadrados','ID',ID))})
-    })
+    
 
 }
 
