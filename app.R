@@ -12,10 +12,6 @@ modelo_aluguel_asa_norte <- readRDS('modelos aluguel/Asa Norte.rds')
 modelo_aluguel_asa_sul <- readRDS('modelos aluguel/Asa Sul.rds')
 modelo_aluguel_lago_sul <- readRDS('modelos aluguel/Lago Sul.rds')
 
-modelo_aluguel_asa_norte %>% summary()
-modelo_aluguel_asa_sul %>% summary()
-modelo_aluguel_lago_sul %>% summary()
-
 
 
 ##NÃO RODAR, EM CONSTRUÇÃo##
@@ -121,7 +117,13 @@ menu_lateral <- dashboardSidebar(
                 max = max(analise$quartos, na.rm = T),
                 value = 4
             ),
-            #sliderInput('meter','Metragem:',min = min(analise$area_util_m2,na.rm = T),max=max(analise$area_util_m2,na.rm = T),value=50)
+            # sliderInput(
+            #     'meter',
+            #     'Metragem:',
+            #     min = min(analise$area_util_m2, na.rm = T),
+            #     max = max(analise$area_util_m2, na.rm = T),
+            #     value = 50
+            # ),
             numericInput(
                 'meter',
                 'Metragem:',
@@ -170,10 +172,14 @@ menu_lateral <- dashboardSidebar(
     # asa norte
         conditionalPanel(
             condition = "input.local == 'norte' && input.tabs == 'est'",
-            numericInput("m2", "Metragem", value = 50, min =
-                             0),
             numericInput(
-                "condo",
+                "m2.1",
+                "Metragem",
+                value = 50,
+                min = 0
+            ),
+            numericInput(
+                "condo.1",
                 "Valor do Condomínio R$",
                 value = 100,
                 min = 0
@@ -185,30 +191,18 @@ menu_lateral <- dashboardSidebar(
                 max = 10,
                 step = 1,
                 value = 0
-            ),
-            numericInput(
-                "alug",
-                "Aluguel a ser comparado R$",
-                value = 1000,
-                min = 0
             )
         ),
     
     # asa sul
         conditionalPanel(
             condition = "input.local == 'sul' && input.tabs == 'est'",
-            numericInput("quarto", "Número de Quartos", value =
+            numericInput("quarto.1", "Número de Quartos", value =
                              2, min = 0),
             numericInput(
                 "condo",
                 "Valor do Condomínio R$",
                 value = 100,
-                min = 0
-            ),
-            numericInput(
-                "alug",
-                "Aluguel a ser comparado R$",
-                value = 1000,
                 min = 0
             )
         ),
@@ -221,14 +215,17 @@ menu_lateral <- dashboardSidebar(
             numericInput("quarto", "Número de Quartos", value =
                              2, min = 0),
             numericInput("ban", "Número de Banheiros", value =
-                             2, min = 0),
-            numericInput(
-                "alug",
-                "Aluguel a ser comparado R$",
-                value = 1000,
-                min = 0
-            )
-        )
+                             2, min = 0)
+            
+        ),
+    conditionalPanel(
+        condition = "input.tabs == 'est' ",
+    numericInput(
+        "alug",
+        "Aluguel a ser comparado R$",
+        value = 1000,
+        min = 0)
+    )
     )
 
 
@@ -286,23 +283,6 @@ server <- function(input, output) {
             
     })
     
-    
-    
-    data_est <- reactive({
-        valor <- switch(input$local, 
-                        norte = round((0.3*predict.lm(modelo_aluguel_asa_norte,newdata=data.frame(`Area Util`=input$m2,Condominio=input$condo,
-                                                                              Vagas=as.numeric(input$vaga>=1),check.names = F))+1)^(1/0.3),2),
-                        
-                        sul = round(exp(predict.lm(modelo_aluguel_asa_sul,newdata=data.frame(Quartos=input$quarto,
-                                                                             Condominio=input$condo))),2),
-                        
-                        lago = round(predict.lm(modelo_aluguel_lago_sul,newdata=data.frame(`Area Util`=input$m2,Quartos=input$quarto,
-                                                                         Banheiros=input$ban,check.names = F)),2)
-        )
-    })
-    
-    
-    
     output$mapa <-  renderLeaflet({
         suppressWarnings({leaflet(banco_filtro()) %>%
                 addTiles() %>%
@@ -314,6 +294,30 @@ server <- function(input, output) {
     
     
     #estimacao
+    
+    data_est <- reactive({
+        valor <- switch(input$local, 
+                        norte = round((0.3*predict.lm(modelo_aluguel_asa_norte,newdata=data.frame(`Area Util`=input$m2.1,Condominio=input$condo.1,
+                                                                              Vagas=as.numeric(input$vaga>=1),check.names = F))+1)^(1/0.3),2),
+                        
+                        sul = round(exp(predict.lm(modelo_aluguel_asa_sul,newdata=data.frame(Quartos=input$quarto.1,
+                                                                             Condominio=input$condo))),2),
+                        
+                        lago = round(predict.lm(modelo_aluguel_lago_sul,newdata=data.frame(`Area Util`=input$m2,Quartos=input$quarto,
+                                                                         Banheiros=input$ban,check.names = F)),2)
+        )
+        
+        
+    })
+    
+    
+    data_diff <- reactive({abs(data_est()-input$alug)})
+
+    
+    
+    
+    
+    
     output$estima <- renderInfoBox({
         infoBox(tags$p("Preço Estimado",style="font-size: 120%;",),
                 tags$p(
@@ -329,7 +333,7 @@ server <- function(input, output) {
     output$compara <- renderInfoBox({
         infoBox(tags$p("Comparação",style="font-size: 120%;"),
                 tags$p(
-                paste('R$',suppressWarnings({format(abs(data_est()-input$alug),decimal.mark = ',',big.mark = '.')})),
+                paste('R$',suppressWarnings({format(data_diff(),decimal.mark = ',',big.mark = '.')})),
                 style="font-size: 150%;"
                 )
     
