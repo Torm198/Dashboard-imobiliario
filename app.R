@@ -166,18 +166,15 @@ menu_lateral <- dashboardSidebar(
                     "Lago Sul" = "lago"
                 ),
                 selected = "norte"
-            )
+            ),
+            numericInput("m2", "Metragem", value = 50, min =
+                             0)
+            
         ),
     
     # asa norte
         conditionalPanel(
             condition = "input.local == 'norte' && input.tabs == 'est'",
-            numericInput(
-                "m2.1",
-                "Metragem",
-                value = 50,
-                min = 0
-            ),
             numericInput(
                 "condo.1",
                 "Valor do Condomínio R$",
@@ -210,8 +207,6 @@ menu_lateral <- dashboardSidebar(
     # lago sul
         conditionalPanel(
             condition = "input.local == 'lago' && input.tabs == 'est'",
-            numericInput("m2", "Metragem", value = 50, min =
-                             0),
             numericInput("quarto", "Número de Quartos", value =
                              2, min = 0),
             numericInput("ban", "Número de Banheiros", value =
@@ -249,6 +244,7 @@ corpo <- dashboardBody(
                 fluidRow(
                     infoBoxOutput('estima',width=6),
                     infoBoxOutput('compara',width=6),
+                    infoBoxOutput('metroq',width=6)
                 )
         )))
 
@@ -297,7 +293,7 @@ server <- function(input, output) {
     
     data_est <- reactive({
         valor <- switch(input$local, 
-                        norte = round((0.3*predict.lm(modelo_aluguel_asa_norte,newdata=data.frame(`Area Util`=input$m2.1,Condominio=input$condo.1,
+                        norte = round((0.3*predict.lm(modelo_aluguel_asa_norte,newdata=data.frame(`Area Util`=input$m2,Condominio=input$condo.1,
                                                                               Vagas=as.numeric(input$vaga>=1),check.names = F))+1)^(1/0.3),2),
                         
                         sul = round(exp(predict.lm(modelo_aluguel_asa_sul,newdata=data.frame(Quartos=input$quarto.1,
@@ -334,6 +330,19 @@ server <- function(input, output) {
         infoBox(tags$p("Comparação",style="font-size: 120%;"),
                 tags$p(
                 paste('R$',suppressWarnings({format(data_diff(),decimal.mark = ',',big.mark = '.')})),
+                style="font-size: 150%;"
+                )
+    
+    
+                
+                )})
+
+    
+    
+        output$metroq <- renderInfoBox({
+        infoBox(tags$p("valor do aluguel/m²",style="font-size: 120%;"),
+                tags$p(
+                paste('R$',suppressWarnings({format(round(data_est()/input$m2,2),decimal.mark = ',',big.mark = '.')}),'/M²'),
                 style="font-size: 150%;"
                 )
     
