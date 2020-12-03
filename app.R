@@ -101,13 +101,15 @@ menu_lateral <- dashboardSidebar(
     sidebarMenu(
         id = "tabs",
         menuItem('Exploratória', tabName = 'exp'),
-        menuItem('Estimação', tabName = 'est')
+        menuItem('Estimação', tabName = 'est'),
+        menuItem('Imóveis da União',tabName = 'uniao')
     ),
     
-    radioButtons('procura', 'O que você procura?', choices = opcoes),
+    
     
         conditionalPanel(
             "input.tabs == 'exp'",
+            radioButtons('procura', 'O que você procura?', choices = opcoes),
             selectInput('bairro', 'Escolha o bairro', choices = bairros),
             
             sliderInput(
@@ -144,11 +146,6 @@ menu_lateral <- dashboardSidebar(
                 min = 1,
                 max = max(analise$vagas, na.rm = T),
                 value = 1
-            ),
-            checkboxGroupInput(
-                'status',
-                'status(não implementado)',
-                choices = c('Em processo', 'Aprovado', 'Edital')
             )
         ),
         
@@ -220,7 +217,17 @@ menu_lateral <- dashboardSidebar(
         "Aluguel a ser comparado R$",
         value = 1000,
         min = 0)
+    ),
+    
+    conditionalPanel(
+        condition = "input.tabs == 'uniao' ",
+        checkboxGroupInput(
+            'status',
+            'Status:',
+            choices = c('Em processo', 'Aprovado', 'Edital')
+        )
     )
+    
     )
 
 
@@ -350,7 +357,13 @@ server <- function(input, output) {
                 
                 )})
     
-    
+    ###uniao#########
+        
+        output$tabela <- renderDataTable({})
+        
+        
+        
+        
 
 }
 
