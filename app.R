@@ -15,60 +15,6 @@ modelo_aluguel_lago_sul <- readRDS('modelos aluguel/Lago Sul.rds')
 modelo_venda_apt <- readRDS('modelos venda/modapt.gz')
 modelo_venda_casa <- readRDS('modelos venda/modcasa.gz')
 
-##NÃO RODAR, EM CONSTRUÇÃo##
-# modelo_aluguel <- list()
-# 
-# 
-# modelo_aluguel[['Asa Norte']] <- function(area,condominio,vaga){
-#     
-#     est <- predict.lm(modelo_aluguel_asa_norte,
-#                       
-#                       newdata = data.frame( area = m2,
-#                                             Condominio = condominio,
-#                                             vagas = (vaga >= 1)*1
-#                       ))
-#     
-#     transformada <- round((0.3*est+1)^(1/0.3),2)
-#     
-#     saida <- format(transformada,nsmall = 2,decimal.mark = ',')
-#     
-#     
-#     return(saida)
-# } 
-# 
-# 
-# 
-# modelo_aluguel[['Asa Sul']] <- function(quarto,condominio,sobra){
-#     sobra <- NA # mata a variavel
-#     est <- predict.lm(modelo_aluguel_asa_sul,
-#                       newdata = data.frame(Quartos = quarto,
-#                                            Condominio = condominio))
-#     
-#     transformada <- round(exp(est),2)
-#     
-#     saida <- format(transformada,nsmall = 2,decimal.mark = ',')
-#     
-#     
-#     return(saida)
-# }
-# 
-# 
-# 
-# modelo_aluguel[['Lago Sul']] <- function(area,quarto,banheiro){
-#     est <- predict.lm(modelo_aluguel_lago_sul,
-#                       newdata = data.frame(area=input$m2,
-#                                            Quartos=input$quarto,
-#                                            Banheiros=input$ban))
-#     
-#     transformada <- round(exp(est),2)
-#     
-#     saida <- format(transformada,nsmall = 2,decimal.mark = ',')
-#     
-#     
-#     return(saida)
-# } 
-
-
 
 
 
@@ -76,7 +22,14 @@ modelo_venda_casa <- readRDS('modelos venda/modcasa.gz')
 
 
 def_bairro <- function(bairro,imovel){
-    
+    if_else(imovel=='casa',
+            if_else(bairro=='lago',
+                    'Lago Sul',
+                    'Plano'
+                    ),
+            if_else(bairro=='norte',
+                    'Asa Norte',
+                    'Asa Sul'))
 }
 
 
@@ -171,9 +124,8 @@ menu_lateral <- dashboardSidebar(
                 ),
                 selected = "norte"
             ),
-            radioButtons('imovel', 'Tipo de imóvel', choices = c('Casa','Apartamento')),
-            numericInput("m2", "Metragem", value = 50, min =
-                             0)
+            radioButtons('imovel', 'Tipo de imóvel', choices = list('Casa'= 'casa','Apartamento'='apt')),
+            numericInput("m2", "Metragem", value = 50, min = 0)
             
         ),
     
@@ -249,10 +201,13 @@ corpo <- dashboardBody(
         #estimacao
         tabItem('est',
                 fluidRow(
-                    infoBoxOutput('estima',width=6),
+                    infoBoxOutput('estima_aluguel',width=6),
+                    infoBoxOutput('estima_venda',width=6),
                     infoBoxOutput('compara',width=6),
                     infoBoxOutput('metroq',width=6)
                 )),
+        
+        #uniao
         tabItem('uniao',
                 dataTableOutput('tabela'))
         ))
@@ -280,6 +235,8 @@ server <- function(input, output) {
                    )
     })
     
+    
+    #grafico para distribuicao de metragem
     output$metragem <- renderPlotly({
         plot_ly(data = banco_filtro(),x=~area_util_m2,type = 'histogram',bingroup=1) %>%
             layout(title= 'Distribuição de metragem',
@@ -288,6 +245,7 @@ server <- function(input, output) {
             
     })
     
+    #gerar o mapa
     output$mapa <-  renderLeaflet({
         suppressWarnings({leaflet(banco_filtro()) %>%
                 addTiles() %>%
@@ -300,8 +258,14 @@ server <- function(input, output) {
     
     #estimacao
     
+    
+    
+    # valores estimados
     data_est <- reactive({
         
+        
+        
+        # todos os inputs relevantes para estimacao entram nesse data.frame
         banco_predicao <- data.frame(`Area Util`=input$m2,
                                      Condominio=input$condo,
                                      Vagas=as.numeric(input$vaga>=1),
@@ -311,37 +275,52 @@ server <- function(input, output) {
                                      vagas=input$vaga,
                                      quartos=input$quarto,
                                      banheiros=input$ban,
-                                     bairro=
+                                     bairro=def_bairro(input$local,input$imovel),
                                      check.names = F
                                      )
         
         
-        
-        valor <- switch(input$local, 
+        #estimacao do valor do aluguel
+        valor_aluguel <- switch(input$local, 
                         norte = round((0.3*predict.lm(modelo_aluguel_asa_norte,newdata=banco_predicao)+1)^(1/0.3),2),
                         
                         sul = round(exp(predict.lm(modelo_aluguel_asa_sul,newdata=banco_predicao)),2),
                         
                         lago = round(predict.lm(modelo_aluguel_lago_sul,newdata=banco_predicao),2)
         )
+        #estimacao do valor de venda
+        valor_venda <- switch(input$imovel,
+                              apt = round(exp(predict.lm(modelo_venda_apt,newdata=banco_predicao)),2),
+                              casa = round(exp(predict.lm(modelo_venda_casa,newdata=banco_predicao)),2)
+        )
         
         
-        
-        return(valor)
+        return(c(valor_aluguel,valor_venda))
     })
     
     
-    data_diff <- reactive({abs(data_est()-input$alug)})
+    data_diff <- reactive({abs(data_est()[1]-input$alug)})
 
     
     
     
     
     
-    output$estima <- renderInfoBox({
-        infoBox(tags$p("Preço Estimado",style="font-size: 120%;",),
+    output$estima_aluguel <- renderInfoBox({
+        infoBox(tags$p("Aluguel Estimado",style="font-size: 120%;",),
                 tags$p(
-                paste('R$',suppressWarnings({format(data_est(),decimal.mark = ',',big.mark = '.')})),
+                paste('R$',suppressWarnings({format(data_est()[1],decimal.mark = ',',big.mark = '.')})),
+                style="font-size: 150%;"
+                )
+    
+    
+                
+                )})
+    
+    output$estima_venda <- renderInfoBox({
+        infoBox(tags$p("Venda Estimado",style="font-size: 120%;",),
+                tags$p(
+                paste('R$',suppressWarnings({format(data_est()[2],decimal.mark = ',',big.mark = '.')})),
                 style="font-size: 150%;"
                 )
     
@@ -366,7 +345,7 @@ server <- function(input, output) {
         output$metroq <- renderInfoBox({
         infoBox(tags$p("valor do aluguel/m²",style="font-size: 120%;"),
                 tags$p(
-                paste('R$',suppressWarnings({format(round(data_est()/input$m2,2),decimal.mark = ',',big.mark = '.')}),'/M²'),
+                paste('R$',suppressWarnings({format(round(data_est()[1]/input$m2,2),decimal.mark = ',',big.mark = '.')}),'/M²'),
                 style="font-size: 150%;"
                 )
     
