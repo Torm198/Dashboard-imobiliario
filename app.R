@@ -12,7 +12,8 @@ modelo_aluguel_asa_norte <- readRDS('modelos aluguel/Asa Norte.rds')
 modelo_aluguel_asa_sul <- readRDS('modelos aluguel/Asa Sul.rds')
 modelo_aluguel_lago_sul <- readRDS('modelos aluguel/Lago Sul.rds')
 
-
+modelo_venda_apt <- readRDS('modelos venda/modapt.gz')
+modelo_venda_casa <- readRDS('modelos venda/modcasa.gz')
 
 ##NÃO RODAR, EM CONSTRUÇÃo##
 # modelo_aluguel <- list()
@@ -71,6 +72,12 @@ modelo_aluguel_lago_sul <- readRDS('modelos aluguel/Lago Sul.rds')
 
 
 
+############# funcao de apoio ###################
+
+
+def_bairro <- function(bairro,imovel){
+    
+}
 
 
 
@@ -164,6 +171,7 @@ menu_lateral <- dashboardSidebar(
                 ),
                 selected = "norte"
             ),
+            radioButtons('imovel', 'Tipo de imóvel', choices = c('Casa','Apartamento')),
             numericInput("m2", "Metragem", value = 50, min =
                              0)
             
@@ -171,13 +179,7 @@ menu_lateral <- dashboardSidebar(
     
     # asa norte
         conditionalPanel(
-            condition = "input.local == 'norte' && input.tabs == 'est'",
-            numericInput(
-                "condo.1",
-                "Valor do Condomínio R$",
-                value = 100,
-                min = 0
-            ),
+            condition = "input.tabs == 'est'",
             sliderInput(
                 "vaga",
                 "Número de Vagas",
@@ -191,7 +193,7 @@ menu_lateral <- dashboardSidebar(
     # asa sul
         conditionalPanel(
             condition = "input.local == 'sul' && input.tabs == 'est'",
-            numericInput("quarto.1", "Número de Quartos", value =
+            numericInput("quarto", "Número de Quartos", value =
                              2, min = 0),
             numericInput(
                 "condo",
@@ -203,9 +205,7 @@ menu_lateral <- dashboardSidebar(
     
     # lago sul
         conditionalPanel(
-            condition = "input.local == 'lago' && input.tabs == 'est'",
-            numericInput("quarto", "Número de Quartos", value =
-                             2, min = 0),
+            condition = "input.tabs == 'est'",
             numericInput("ban", "Número de Banheiros", value =
                              2, min = 0)
             
@@ -252,8 +252,10 @@ corpo <- dashboardBody(
                     infoBoxOutput('estima',width=6),
                     infoBoxOutput('compara',width=6),
                     infoBoxOutput('metroq',width=6)
-                )
-        )))
+                )),
+        tabItem('uniao',
+                dataTableOutput('tabela'))
+        ))
 
 
 
@@ -299,18 +301,33 @@ server <- function(input, output) {
     #estimacao
     
     data_est <- reactive({
+        
+        banco_predicao <- data.frame(`Area Util`=input$m2,
+                                     Condominio=input$condo,
+                                     Vagas=as.numeric(input$vaga>=1),
+                                     Quartos=input$quarto,
+                                     Banheiros=input$ban,
+                                     area_util_m2=input$m2,
+                                     vagas=input$vaga,
+                                     quartos=input$quarto,
+                                     banheiros=input$ban,
+                                     bairro=
+                                     check.names = F
+                                     )
+        
+        
+        
         valor <- switch(input$local, 
-                        norte = round((0.3*predict.lm(modelo_aluguel_asa_norte,newdata=data.frame(`Area Util`=input$m2,Condominio=input$condo.1,
-                                                                              Vagas=as.numeric(input$vaga>=1),check.names = F))+1)^(1/0.3),2),
+                        norte = round((0.3*predict.lm(modelo_aluguel_asa_norte,newdata=banco_predicao)+1)^(1/0.3),2),
                         
-                        sul = round(exp(predict.lm(modelo_aluguel_asa_sul,newdata=data.frame(Quartos=input$quarto.1,
-                                                                             Condominio=input$condo))),2),
+                        sul = round(exp(predict.lm(modelo_aluguel_asa_sul,newdata=banco_predicao)),2),
                         
-                        lago = round(predict.lm(modelo_aluguel_lago_sul,newdata=data.frame(`Area Util`=input$m2,Quartos=input$quarto,
-                                                                         Banheiros=input$ban,check.names = F)),2)
+                        lago = round(predict.lm(modelo_aluguel_lago_sul,newdata=banco_predicao),2)
         )
         
         
+        
+        return(valor)
     })
     
     
@@ -359,7 +376,7 @@ server <- function(input, output) {
     
     ###uniao#########
         
-        output$tabela <- renderDataTable({})
+        output$tabela <- renderDataTable({data.frame(A=1,B=1,C=1)})
         
         
         
