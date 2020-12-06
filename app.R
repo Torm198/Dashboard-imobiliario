@@ -1,8 +1,9 @@
-library(shiny)
+require(shiny)
 require(leaflet)
 require(shinydashboard)
 require(tidyverse)
 require(plotly)
+
 
 
 
@@ -18,6 +19,7 @@ modelo_venda_casa <- readRDS('modelos venda/modcasa.gz')
 
 
 
+
 ############# funcao de apoio ###################
 
 
@@ -26,7 +28,7 @@ def_bairro <- function(bairro,imovel){
             if_else(bairro=='lago',
                     'Lago Sul',
                     'Plano'
-                    ),
+            ),
             if_else(bairro=='norte',
                     'Asa Norte',
                     'Asa Sul'))
@@ -42,15 +44,24 @@ def_bairro <- function(bairro,imovel){
 
 
 
-
+# banco do wi imoveis
 bairros <- c("Noroeste","Asa Norte","Asa Sul","Lago Norte","Lago Sul")
 opcoes <- c('Aluguel',"Venda")
 
 analise <- readRDS('banco_shiny.RDS') %>% mutate(ID=1:n())
 
 
+# banco da uniao
+processo <- readxl::read_excel("uniao.xlsx",sheet="processo")
+aprovado <- readxl::read_excel("uniao.xlsx",sheet="aprovados")
+
+names(aprovado) <- c("precouniao","Bairro","ref1","ref2","ref3","area_util_m2","condominio","vagas","quartos","banheiros","vagasc")
+names(processo) <- c("Bairro","ref1","ref2","ref3","area_util_m2","condominio","vagas","quartos","banheiros","vagasc")
+
+
+
 ############# Header do dashboard #####################
-titulo <- dashboardHeader(title = 'Build Parcial 2')
+titulo <- dashboardHeader(title = 'Algm decide o titulo')
 
 
 
@@ -66,121 +77,127 @@ menu_lateral <- dashboardSidebar(
     ),
     
     
-    
-        conditionalPanel(
-            "input.tabs == 'exp'",
-            radioButtons('procura', 'O que você procura?', choices = opcoes),
-            selectInput('bairro', 'Escolha o bairro', choices = bairros),
-            
-            sliderInput(
-                'quartos',
-                'Número de quartos:',
-                min = 1,
-                max = max(analise$quartos, na.rm = T),
-                value = 4
-            ),
-            # sliderInput(
-            #     'meter',
-            #     'Metragem:',
-            #     min = min(analise$area_util_m2, na.rm = T),
-            #     max = max(analise$area_util_m2, na.rm = T),
-            #     value = 50
-            # ),
-            numericInput(
-                'meter',
-                'Metragem:',
-                min = min(analise$area_util_m2, na.rm = T),
-                max = max(analise$area_util_m2, na.rm = T),
-                value = 50
-            ),
-            numericInput(
-                'condominio',
-                'Condominio:',
-                min = min(analise$condominio, na.rm = T),
-                max = 100000,
-                value = 1000
-            ),
-            numericInput(
-                'vagas',
-                'N° de Vagas:',
-                min = 1,
-                max = max(analise$vagas, na.rm = T),
-                value = 1
-            )
-        ),
-        
-        
-        
-        
-        conditionalPanel(
-            condition = "input.tabs == 'est'",
-            selectInput(
-                "local",
-                "Localização",
-                choices = list(
-                    "Asa Norte" = "norte",
-                    "Asa Sul" = "sul",
-                    "Lago Sul" = "lago"
-                ),
-                selected = "norte"
-            ),
-            radioButtons('imovel', 'Tipo de imóvel', choices = list('Casa'= 'casa','Apartamento'='apt')),
-            numericInput("m2", "Metragem", value = 50, min = 0)
-            
-        ),
-    
-    # asa norte
-        conditionalPanel(
-            condition = "input.tabs == 'est'",
-            sliderInput(
-                "vaga",
-                "Número de Vagas",
-                min = 0,
-                max = 10,
-                step = 1,
-                value = 0
-            )
-        ),
-    
-    # asa sul
-        conditionalPanel(
-            condition = "input.local == 'sul' && input.tabs == 'est'",
-            numericInput("quarto", "Número de Quartos", value =
-                             2, min = 0),
-            numericInput(
-                "condo",
-                "Valor do Condomínio R$",
-                value = 100,
-                min = 0
-            )
-        ),
-    
-    # lago sul
-        conditionalPanel(
-            condition = "input.tabs == 'est'",
-            numericInput("ban", "Número de Banheiros", value =
-                             2, min = 0)
-            
-        ),
+    # exploratoria
     conditionalPanel(
-        condition = "input.tabs == 'est' ",
-    numericInput(
-        "alug",
-        "Aluguel a ser comparado R$",
-        value = 1000,
-        min = 0)
+        "input.tabs == 'exp'",
+        radioButtons('procura', 'O que você procura?', choices = opcoes),
+        selectInput('bairro', 'Escolha o bairro', choices = bairros),
+        
+        sliderInput(
+            'quartos',
+            'Número de quartos:',
+            min = 1,
+            max = max(analise$quartos, na.rm = T),
+            value = 4
+        ),
+        # sliderInput(
+        #     'meter',
+        #     'Metragem:',
+        #     min = min(analise$area_util_m2, na.rm = T),
+        #     max = max(analise$area_util_m2, na.rm = T),
+        #     value = 50
+        # ),
+        numericInput(
+            'meter',
+            'Metragem:',
+            min = min(analise$area_util_m2, na.rm = T),
+            max = max(analise$area_util_m2, na.rm = T),
+            value = 50
+        ),
+        numericInput(
+            'condominio',
+            'Condominio:',
+            min = min(analise$condominio, na.rm = T),
+            max = 100000,
+            value = 1000
+        ),
+        numericInput(
+            'vagas',
+            'N° de Vagas:',
+            min = 1,
+            max = max(analise$vagas, na.rm = T),
+            value = 1
+        )
     ),
     
+    
+    
+    # estimacao
+    conditionalPanel(
+        condition = "input.tabs == 'est'",
+        selectInput(
+            "local",
+            "Localização",
+            choices = list(
+                "Asa Norte" = "norte",
+                "Asa Sul" = "sul",
+                "Lago Sul" = "lago"
+            ),
+            selected = "norte"
+        ),
+        radioButtons('imovel', 'Tipo de imóvel', choices = list('Casa'= 'casa','Apartamento'='apt')),
+        numericInput("m2", "Metragem", value = 50, min = 0)
+        
+    ),
+    
+    # asa norte
+    conditionalPanel(
+        condition = "input.tabs == 'est'",
+        sliderInput(
+            "vaga",
+            "Número de Vagas",
+            min = 0,
+            max = 10,
+            step = 1,
+            value = 0
+        )
+    ),
+    
+    # asa sul
+    conditionalPanel(
+        condition = "input.tabs == 'est'",
+        numericInput("quarto", "Número de Quartos", value =
+                         2, min = 0),
+        numericInput(
+            "condo",
+            "Valor do Condomínio R$",
+            value = 100,
+            min = 0
+        )
+    ),
+    
+    # lago sul
+    conditionalPanel(
+        condition = "input.tabs == 'est'",
+        numericInput("ban", "Número de Banheiros", value =
+                         2, min = 0)
+        
+    ),
+    conditionalPanel(
+        condition = "input.tabs == 'est' ",
+        numericInput(
+            "alug",
+            "Aluguel a ser comparado R$",
+            value = 1000,
+            min = 0)
+    ),
+    
+    # uniao
     conditionalPanel(
         condition = "input.tabs == 'uniao' ",
-        checkboxGroupInput(
+        radioButtons(
             'status',
             'Status:',
             choices = c('Em processo', 'Aprovado', 'Edital')
+        ),
+        radioButtons(
+            'reforma',
+            'Preço de reforma:',
+            choices = c("R$420/m²","R$550/m²","R$650/m²")
         )
     )
     
-    )
+)
 
 
 
@@ -210,7 +227,7 @@ corpo <- dashboardBody(
         #uniao
         tabItem('uniao',
                 dataTableOutput('tabela'))
-        ))
+    ))
 
 
 
@@ -232,7 +249,7 @@ server <- function(input, output) {
             layout(title= 'Distribuição dos preços',
                    xaxis=list(title=paste('Valor de',input$procura,"em Reais" )),
                    bargap=0.1
-                   )
+            )
     })
     
     
@@ -242,7 +259,7 @@ server <- function(input, output) {
             layout(title= 'Distribuição de metragem',
                    xaxis=list(title='Área Útil em metros quadrados'),
                    bargap=0.1)
-            
+        
     })
     
     #gerar o mapa
@@ -277,20 +294,20 @@ server <- function(input, output) {
                                      banheiros=input$ban,
                                      bairro=def_bairro(input$local,input$imovel),
                                      check.names = F
-                                     )
+        )
         
         
         #estimacao do valor do aluguel
         valor_aluguel <- switch(input$local, 
-                        norte = round((0.3*predict.lm(modelo_aluguel_asa_norte,newdata=banco_predicao)+1)^(1/0.3),2),
-                        
-                        sul = round(exp(predict.lm(modelo_aluguel_asa_sul,newdata=banco_predicao)),2),
-                        
-                        lago = round(predict.lm(modelo_aluguel_lago_sul,newdata=banco_predicao),2)
+                                norte = round((0.3*predict.lm(modelo_aluguel_asa_norte,newdata=banco_predicao)+1)^(1/0.3),2),
+                                
+                                sul = round(exp(predict.lm(modelo_aluguel_asa_sul,newdata=banco_predicao)),2),
+                                
+                                lago = round(predict.lm(modelo_aluguel_lago_sul,newdata=banco_predicao),2)
         )
         #estimacao do valor de venda
         valor_venda <- switch(input$imovel,
-                              apt = round(exp(predict.lm(modelo_venda_apt,newdata=banco_predicao)),2),
+                              apt = round((-0.05*predict.lm(modelo_venda_apt,newdata=banco_predicao)+1)^(1/-0.05),2),
                               casa = round(exp(predict.lm(modelo_venda_casa,newdata=banco_predicao)),2)
         )
         
@@ -300,7 +317,7 @@ server <- function(input, output) {
     
     
     data_diff <- reactive({abs(data_est()[1]-input$alug)})
-
+    
     
     
     
@@ -309,59 +326,84 @@ server <- function(input, output) {
     output$estima_aluguel <- renderInfoBox({
         infoBox(tags$p("Aluguel Estimado",style="font-size: 120%;",),
                 tags$p(
-                paste('R$',suppressWarnings({format(data_est()[1],decimal.mark = ',',big.mark = '.')})),
-                style="font-size: 150%;"
+                    paste('R$',suppressWarnings({format(data_est()[1],decimal.mark = ',',big.mark = '.')})),
+                    style="font-size: 150%;"
                 )
-    
-    
                 
-                )})
+                
+                
+        )})
     
     output$estima_venda <- renderInfoBox({
         infoBox(tags$p("Venda Estimado",style="font-size: 120%;",),
                 tags$p(
-                paste('R$',suppressWarnings({format(data_est()[2],decimal.mark = ',',big.mark = '.')})),
-                style="font-size: 150%;"
+                    paste('R$',suppressWarnings({format(data_est()[2],decimal.mark = ',',big.mark = '.')})),
+                    style="font-size: 150%;"
                 )
-    
-    
                 
-                )})
+                
+                
+        )})
     
     
     output$compara <- renderInfoBox({
         infoBox(tags$p("Comparação",style="font-size: 120%;"),
                 tags$p(
-                paste('R$',suppressWarnings({format(data_diff(),decimal.mark = ',',big.mark = '.')})),
-                style="font-size: 150%;"
+                    paste('R$',suppressWarnings({format(data_diff(),decimal.mark = ',',big.mark = '.')})),
+                    style="font-size: 150%;"
                 )
-    
-    
                 
-                )})
-
+                
+                
+        )})
     
     
-        output$metroq <- renderInfoBox({
+    
+    output$metroq <- renderInfoBox({
         infoBox(tags$p("valor do aluguel/m²",style="font-size: 120%;"),
                 tags$p(
-                paste('R$',suppressWarnings({format(round(data_est()[1]/input$m2,2),decimal.mark = ',',big.mark = '.')}),'/M²'),
-                style="font-size: 150%;"
+                    paste('R$',suppressWarnings({format(round(data_est()[1]/input$m2,2),decimal.mark = ',',big.mark = '.')}),'/M²'),
+                    style="font-size: 150%;"
                 )
-    
-    
                 
-                )})
+                
+                
+        )})
     
     ###uniao#########
-        
-        output$tabela <- renderDataTable({data.frame(A=1,B=1,C=1)})
-        
-        
-        
-        
-
+    
+    
+    uniao_filtro <-reactive(
+        if(input$status=="Em processo"){
+            if(input$reforma=="R$420/m²"){
+                processo[,-c(3,4)]
+            } else if (input$reforma=="R$550/m²"){
+                processo[,-c(2,4)]
+            } else {
+                processo[,-c(2,3)]
+            }
+            
+        } else {
+            if(input$reforma=="R$420/m²"){
+                aprovado$sugerido <- aprovado$precouniao-aprovado$ref1
+                aprovado[,-c(4,5)]
+            } else if (input$reforma=="R$550/m²"){
+                aprovado$sugerido <- aprovado$precouniao-aprovado$ref2
+                aprovado[,-c(3,5)]
+            } else {
+                aprovado$sugerido <- aprovado$precouniao-aprovado$ref3
+                aprovado[,-c(3,4)]
+            }
+        }
+    )
+    output$tabela <- renderDataTable(uniao_filtro())
+    
+    
+    
+    
+    
 }
+
 
 ######### rodar o shiny ###############
 ui <- dashboardPage(header=titulo,sidebar=menu_lateral,body=corpo)
