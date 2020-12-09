@@ -52,11 +52,7 @@ analise <- readRDS('banco_shiny.RDS') %>% mutate(ID=1:n())
 
 
 # banco da uniao
-processo <- readxl::read_excel("uniao.xlsx",sheet="processo")
-aprovado <- readxl::read_excel("uniao.xlsx",sheet="aprovados")
 
-names(aprovado) <- c("precouniao","Bairro","ref1","ref2","ref3","area_util_m2","condominio","vagas","quartos","banheiros","vagasc")
-names(processo) <- c("Bairro","ref1","ref2","ref3","area_util_m2","condominio","vagas","quartos","banheiros","vagasc")
 
 
 
@@ -221,7 +217,8 @@ corpo <- dashboardBody(
                     infoBoxOutput('estima_aluguel',width=6),
                     infoBoxOutput('estima_venda',width=6),
                     infoBoxOutput('compara',width=6),
-                    infoBoxOutput('metroq',width=6)
+                    infoBoxOutput('metroq',width=6),
+                    infoBoxOutput('caprate',width=6)
                 )),
         
         #uniao
@@ -370,32 +367,70 @@ server <- function(input, output) {
                 
         )})
     
+    
+    output$caprate <- renderInfoBox({
+        infoBox(tags$p("Cap rate",style="font-size: 120%;"),
+                tags$p(
+                    paste(suppressWarnings({format(round(data_est()[1]*100/data_est()[2],2),decimal.mark = ',',big.mark = '.')}),'% por mês'),
+                    style="font-size: 150%;"
+                )
+                
+                
+                
+        )})
+    
     ###uniao#########
     
-    
-    uniao_filtro <-reactive(
-        if(input$status=="Em processo"){
-            if(input$reforma=="R$420/m²"){
-                processo[,-c(3,4)]
-            } else if (input$reforma=="R$550/m²"){
-                processo[,-c(2,4)]
+    uniao_filtro <- reactive(
+        if(input$status == "Em processo"){
+            if(input$reforma == "R$420/m²"){
+                uniao_processo$`Preço Sugerido` <- uniao_processo$`Preço Estimado` - processo$ref1
+                uniao_processo[,-c(4,5)]
+            } else if (input$reforma == "R$550/m²"){
+                uniao_processo$`Preço Sugerido` <- uniao_processo$`Preço Estimado` - processo$ref2
+                uniao_processo[,-c(3,5)]
             } else {
-                processo[,-c(2,3)]
+                uniao_processo$`Preço Sugerido` <- uniao_processo$`Preço Estimado` - processo$ref3
+                uniao_processo[,-c(3,4)]
             }
-            
-        } else {
-            if(input$reforma=="R$420/m²"){
-                aprovado$sugerido <- aprovado$precouniao-aprovado$ref1
-                aprovado[,-c(4,5)]
-            } else if (input$reforma=="R$550/m²"){
-                aprovado$sugerido <- aprovado$precouniao-aprovado$ref2
-                aprovado[,-c(3,5)]
+        } else if (input$status == "Aprovado"){
+            if(input$reforma == "R$420/m²"){
+                uniao_aprovado$`Preço Sugerido` <- uniao_aprovado$`Preço Estimado` - aprovado$ref1
+                uniao_aprovado[,-c(4,5)]
+            } else if (input$reforma == "R$550/m²"){
+                uniao_aprovado$`Preço Sugerido` <- uniao_aprovado$`Preço Estimado` - aprovado$ref2
+                uniao_aprovado[,-c(3,5)]
             } else {
-                aprovado$sugerido <- aprovado$precouniao-aprovado$ref3
-                aprovado[,-c(3,4)]
+                uniao_aprovado$`Preço Sugerido` <- uniao_aprovado$`Preço Estimado` - aprovado$ref3
+                uniao_aprovado[,-c(3,4)]
+            }
+        } else {
+            if (input$reforma == "R$420/m²"){
+                sugerido <- uniao_edital$`Preço Estimado` - edital$ref1
+                diferenca <- sugerido - edital$precouniao
+                uniao_edital$`Preço Sugerido` <- sugerido
+                uniao_edital$`Comparação (R$)` <- diferenca
+                uniao_edital$`Comparação (%)` <- paste(round((diferenca/sugerido)*100,1),"%",sep="")
+                uniao_edital[,-c(4,5)]
+            } else if (input$reforma == "R$550/m²"){
+                sugerido <- uniao_edital$`Preço Estimado` - edital$ref2
+                diferenca <- sugerido - edital$precouniao
+                uniao_edital$`Preço Sugerido` <- sugerido
+                uniao_edital$`Comparação (R$)` <- diferenca
+                uniao_edital$`Comparação (%)` <- paste(round((diferenca/sugerido)*100,1),"%",sep="")
+                uniao_edital[,-c(3,5)]
+            } else {
+                sugerido <- uniao_edital$`Preço Estimado` - edital$ref3
+                diferenca <- sugerido - edital$precouniao
+                uniao_edital$`Preço Sugerido` <- sugerido
+                uniao_edital$`Comparação (R$)` <- diferenca
+                uniao_edital$`Comparação (%)` <- paste(round((diferenca/sugerido)*100,1),"%",sep="")
+                uniao_edital[,-c(3,4)]
             }
         }
     )
+    
+    
     output$tabela <- renderDataTable(uniao_filtro())
     
     
