@@ -368,7 +368,7 @@ server <- function(input, output) {
     
 
     output$compara <- renderValueBox({
-        valueBox(tags$p("Valor da Venda/m²",style="font-size: 120%;"),
+        valueBox(tags$p("Valor da Venda/m²",style="font-size: 60%;"),
 
                 tags$p(
                     paste('R$',suppressWarnings({format(round(data_est()[2]/input$m2,2),decimal.mark = ',',big.mark = '.')}),'/M²'),
