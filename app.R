@@ -69,7 +69,9 @@ uniao_processo <- readRDS('bancos tratados/uniao_processo.RDS')
 
 
 ############# Header do dashboard #####################
-titulo <- dashboardHeader(title = 'Imóveis União')
+title <- tags$a(href='https://www.google.com',
+                icon("building"),
+                'Imóveis União')
 
 
 
@@ -188,6 +190,10 @@ corpo <- dashboardBody(
                                 background-color: #d2d6de;
                             
                               }
+                                  '))),
+    tags$body(tags$style(HTML('a {
+                                 color: #f4f4f4;
+                                }
                                   '))),
     use_theme(meu_tema),
     tags$head(tags$style(HTML('.main-header .logo{
@@ -459,6 +465,9 @@ server <- function(input, output) {
 
 
 ######### rodar o shiny ###############
-ui <- dashboardPage(header=titulo,sidebar=menu_lateral,body=corpo)
+ui <- dashboardPage(
+    dashboardHeader(title = title),
+    sidebar=menu_lateral,
+    body=corpo)
 shinyApp(ui = ui, server = server)
 
