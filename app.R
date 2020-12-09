@@ -79,7 +79,7 @@ titulo <- dashboardHeader(title = 'Imóveis União')
 menu_lateral <- dashboardSidebar(
     sidebarMenu(
         id = "tabs",
-        menuItem('Exploratória', tabName = 'exp'),
+        menuItem('Localização', tabName = 'exp'),
         menuItem('Estimação', tabName = 'est'),
         menuItem('Imóveis da União',tabName = 'uniao')
     ),
@@ -88,44 +88,10 @@ menu_lateral <- dashboardSidebar(
     # exploratoria
     conditionalPanel(
         "input.tabs == 'exp'",
-        radioButtons('procura', 'O que você procura?', choices = opcoes),
-        selectInput('bairro', 'Escolha o bairro', choices = bairros),
+        selectInput('bairro', 'Escolha o bairro', choices = bairros)
+
         
-        sliderInput(
-            'quartos',
-            'Número de quartos:',
-            min = 1,
-            max = max(analise$quartos, na.rm = T),
-            value = 4
-        ),
-        # sliderInput(
-        #     'meter',
-        #     'Metragem:',
-        #     min = min(analise$area_util_m2, na.rm = T),
-        #     max = max(analise$area_util_m2, na.rm = T),
-        #     value = 50
-        # ),
-        numericInput(
-            'meter',
-            'Metragem:',
-            min = min(analise$area_util_m2, na.rm = T),
-            max = max(analise$area_util_m2, na.rm = T),
-            value = 50
-        ),
-        numericInput(
-            'condominio',
-            'Condominio:',
-            min = min(analise$condominio, na.rm = T),
-            max = 100000,
-            value = 1000
-        ),
-        numericInput(
-            'vagas',
-            'N° de Vagas:',
-            min = 1,
-            max = max(analise$vagas, na.rm = T),
-            value = 1
-        )
+        
     ),
     
     
@@ -224,8 +190,9 @@ corpo <- dashboardBody(
         #exploratoria
         tabItem('exp',
                 fluidRow(
-                    box(plotlyOutput('precos')),
-                    box(plotlyOutput('metragem')),
+                    # box(plotlyOutput('precos_aluguel')),
+                    # box(plotlyOutput('precos_venda')),
+                    # box(plotlyOutput('metragem')),
                     leafletOutput('mapa')
                 )),
         
@@ -257,17 +224,25 @@ server <- function(input, output) {
     #exploratoria
     
     banco_filtro <- reactive({
-        filter(analise,bairro==input$bairro & str_detect(tipo_anuncio,input$procura) & quartos<=input$quartos & area_util_m2<=input$meter)
+        filter(analise,bairro==input$bairro)
     })
     
-    output$precos <- renderPlotly({
-        plot_ly(data = banco_filtro(),x=~get(input$procura),type = 'histogram',bingroup=1) %>%
-            layout(title= 'Distribuição dos preços',
-                   xaxis=list(title=paste('Valor de',input$procura,"em Reais" )),
-                   bargap=0.1
-            )
-    })
-    
+    # output$precos_venda <- renderPlotly({
+    #     plot_ly(data = banco_filtro(),x=~Venda,type = 'histogram',bingroup=1) %>%
+    #         layout(title= 'Distribuição dos preços',
+    #                xaxis=list(title='Valor de Venda em Reais' ),
+    #                bargap=0.1
+    #         )
+    # })
+    # 
+    # output$precos_aluguel <- renderPlotly({
+    #     plot_ly(data = banco_filtro(),x=~Aluguel,type = 'histogram',bingroup=1) %>%
+    #         layout(title= 'Distribuição dos preços',
+    #                xaxis=list(title='Valor de Aluguel em Reais' ),
+    #                bargap=0.1
+    #         )
+    # })
+    # 
     
     #grafico para distribuicao de metragem
     output$metragem <- renderPlotly({
@@ -278,13 +253,13 @@ server <- function(input, output) {
         
     })
     
-    #gerar o mapa
+    ########gerar o mapa#############
     output$mapa <-  renderLeaflet({
         suppressWarnings({leaflet(banco_filtro()) %>%
                 addTiles() %>%
                 addMarkers(lng = ~longitude,
                            lat = ~latitude,
-                           popup = ~paste('R$',get(input$procura),'com',area_util_m2,'metros quadrados','ID',ID))})
+                           popup = ~paste('R$',Venda,'com',area_util_m2,'metros quadrados, com',quartos,'quartos, R$',condominio,' de condomínio,',vagas,'vagas'))})
     })
     
     

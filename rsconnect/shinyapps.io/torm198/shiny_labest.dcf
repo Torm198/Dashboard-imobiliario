@@ -5,6 +5,6 @@ account: torm198
 server: shinyapps.io
 hostUrl: https://api.shinyapps.io/v1
 appId: 3378250
-bundleId: 3966120
+bundleId: 3966278
 url: https://torm198.shinyapps.io/shiny_labest/
-when: 1607526111.4408
+when: 1607528363.38501
