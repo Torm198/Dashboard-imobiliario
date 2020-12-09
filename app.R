@@ -7,7 +7,7 @@ require(fresh)
 
 meu_tema <- create_theme(
     adminlte_color(
-        red = "#0F9B8E",
+        red = "#C4C4C4",
         light_blue = "#03719C"
     ),
     adminlte_sidebar(
@@ -178,6 +178,17 @@ menu_lateral <- dashboardSidebar(
 
 ################# corpo do dashboard ########################
 corpo <- dashboardBody(
+    tags$body(tags$style(HTML('.content-wrapper {
+                                  background-image: url(https://images.unsplash.com/photo-1464938050520-ef2270bb8ce8?ixlib=rb-1.2.1&ixid=MXwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHw%3D&auto=format&fit=crop&w=1506&q=80);
+                                  z-index: 800;
+                            
+                              }
+                                  '))),
+    tags$body(tags$style(HTML('table {
+                                background-color: #d2d6de;
+                            
+                              }
+                                  '))),
     use_theme(meu_tema),
     tags$head(tags$style(HTML('.main-header .logo{
                                   font-family: "Georgia",Times,"Times New Roman", serif;
@@ -315,74 +326,75 @@ server <- function(input, output) {
     
     
     output$estima_aluguel <- renderValueBox({
-        valueBox(tags$p("Aluguel Estimado",style="font-size: 60%;",),
-                tags$p(
-                    paste('R$',suppressWarnings({format(data_est()[1],decimal.mark = ',',big.mark = '.')})),
-                    style="font-size: 150%;"
-                ),
-                icon = icon("coins"),
-                color = "red"
-                
-                
-                
+        valueBox(tags$p("Aluguel Estimado",style="font-size: 60%;",style="color:#343837;"),
+                 tags$p(
+                     paste('R$',suppressWarnings({format(data_est()[1],decimal.mark = ',',big.mark = '.')})),
+                     style="font-size: 150%;",style="color:#343837;"
+                 ),
+                 icon = icon("coins"),
+                 color = "red"
+                 
+                 
+                 
         )})
     
     output$estima_venda <- renderValueBox({
-        valueBox(tags$p("Venda Estimado",style="font-size: 60%;",),
-                tags$p(
-                    paste('R$',suppressWarnings({format(data_est()[2],decimal.mark = ',',big.mark = '.')})),
-                    style="font-size: 150%;"
-                ),
-                icon = icon("money-bill"),
-                color = "red"
-                
-                
-                
+        valueBox(tags$p("Venda Estimado",style="font-size: 60%;",style="color:#343837;"),
+                 tags$p(
+                     paste('R$',suppressWarnings({format(data_est()[2],decimal.mark = ',',big.mark = '.')})),
+                     style="font-size: 150%;",style="color:#343837;"
+                 ),
+                 icon = icon("money-bill"),
+                 color = "red"
+                 
+                 
+                 
         )})
     
     
-
+    
     output$compara <- renderValueBox({
-        valueBox(tags$p("Valor da Venda/m²",style="font-size: 60%;"),
-
-                tags$p(
-                    paste('R$',suppressWarnings({format(round(data_est()[2]/input$m2,2),decimal.mark = ',',big.mark = '.')}),'/M²'),
-                    style="font-size: 150%;"
-                ),
-                icon = icon("comments-dollar"),
-                color = "red"
-                
-                
-                
+        valueBox(tags$p("Valor da Venda/m²",style="font-size: 60%;",style="color:#343837;"),
+                 
+                 tags$p(
+                     paste('R$',suppressWarnings({format(round(data_est()[2]/input$m2,2),decimal.mark = ',',big.mark = '.')}),'/M²'),
+                     style="font-size: 150%;",style="color:#343837;"
+                 ),
+                 icon = icon("comments-dollar"),
+                 color = "red"
+                 
+                 
+                 
         )})
     
     
     
     output$metroq <- renderValueBox({
-        valueBox(tags$p("Valor do Aluguel/m²",style="font-size: 60%;"),
-                tags$p(
-                    paste('R$',suppressWarnings({format(round(data_est()[1]/input$m2,2),decimal.mark = ',',big.mark = '.')}),'/M²'),
-                    style="font-size: 150%;"
-                ),
-                icon = icon("comment-dollar"),
-                color = "red"
-                
-                
-                
+        valueBox(tags$p("Valor do Aluguel/m²",style="font-size: 60%;",style="color:#343837;"),
+                 tags$p(
+                     paste('R$',suppressWarnings({format(round(data_est()[1]/input$m2,2),decimal.mark = ',',big.mark = '.')}),'/M²'),
+                     style="font-size: 150%;",style="color:#343837;"
+                 ),
+                 icon = icon("comment-dollar"),
+                 color = "red"
+                 
+                 
+                 
         )})
     
     
     output$caprate <- renderValueBox({
-        valueBox(tags$p("Cap Rate",style="font-size: 60%;"),
-                tags$p(
-                    paste(suppressWarnings({format(round(data_est()[1]*100/data_est()[2],2),decimal.mark = ',',big.mark = '.')}),'% por mês'),
-                    style="font-size: 150%;"
-                ),
-                icon = icon("percentage"),
-                color = "red"
-                
-                
-                
+        valueBox(tags$p("Cap Rate",style="font-size: 60%;",style="color:#343837;"),
+                 tags$p(
+                     paste(suppressWarnings({format(round(data_est()[1]*100/data_est()[2],2),decimal.mark = ',',big.mark = '.')}),'% por mês'),
+                     style="font-size: 150%;",
+                     style="color:#343837;"
+                 ),
+                 icon = icon("percentage"),
+                 color = "red"
+                 
+                 
+                 
         )})
     
     ###uniao#########
