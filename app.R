@@ -3,7 +3,17 @@ require(leaflet)
 require(shinydashboard)
 require(tidyverse)
 require(plotly)
+require(fresh)
 
+meu_tema <- create_theme(
+    adminlte_color(
+        red = "#0F9B8E",
+        light_blue = "#03719C"
+    ),
+    adminlte_sidebar(
+        dark_bg = "#343837"
+    )
+)
 
 
 
@@ -59,7 +69,7 @@ uniao_processo <- readRDS('bancos tratados/uniao_processo.RDS')
 
 
 ############# Header do dashboard #####################
-titulo <- dashboardHeader(title = 'Algm decide o titulo')
+titulo <- dashboardHeader(title = 'Imóveis União')
 
 
 
@@ -202,6 +212,13 @@ menu_lateral <- dashboardSidebar(
 
 ################# corpo do dashboard ########################
 corpo <- dashboardBody(
+    use_theme(meu_tema),
+    tags$head(tags$style(HTML('.main-header .logo{
+                                  font-family: "Georgia",Times,"Times New Roman", serif;
+                                  font-weight:bold;
+                                  font-size:20px;
+                                  }
+                                  '))),
     tabItems(
         
         #exploratoria
@@ -322,35 +339,41 @@ server <- function(input, output) {
     
     
     
-    output$estima_aluguel <- renderInfoBox({
-        infoBox(tags$p("Aluguel Estimado",style="font-size: 120%;",),
+    output$estima_aluguel <- renderValueBox({
+        valueBox(tags$p("Aluguel Estimado",style="font-size: 60%;",),
                 tags$p(
                     paste('R$',suppressWarnings({format(data_est()[1],decimal.mark = ',',big.mark = '.')})),
                     style="font-size: 150%;"
-                )
+                ),
+                icon = icon("coins"),
+                color = "red"
                 
                 
                 
         )})
     
-    output$estima_venda <- renderInfoBox({
-        infoBox(tags$p("Venda Estimado",style="font-size: 120%;",),
+    output$estima_venda <- renderValueBox({
+        valueBox(tags$p("Venda Estimado",style="font-size: 60%;",),
                 tags$p(
                     paste('R$',suppressWarnings({format(data_est()[2],decimal.mark = ',',big.mark = '.')})),
                     style="font-size: 150%;"
-                )
+                ),
+                icon = icon("money-bill"),
+                color = "red"
                 
                 
                 
         )})
     
     
-    output$compara <- renderInfoBox({
-        infoBox(tags$p("Comparação",style="font-size: 120%;"),
+    output$compara <- renderValueBox({
+        valueBox(tags$p("Comparação",style="font-size: 60%;"),
                 tags$p(
                     paste('R$',suppressWarnings({format(data_diff(),decimal.mark = ',',big.mark = '.')})),
                     style="font-size: 150%;"
-                )
+                ),
+                icon = icon("coins"),
+                color = "red"
                 
                 
                 
@@ -358,24 +381,28 @@ server <- function(input, output) {
     
     
     
-    output$metroq <- renderInfoBox({
-        infoBox(tags$p("valor do aluguel/m²",style="font-size: 120%;"),
+    output$metroq <- renderValueBox({
+        valueBox(tags$p("Valor do Aluguel/m²",style="font-size: 60%;"),
                 tags$p(
                     paste('R$',suppressWarnings({format(round(data_est()[1]/input$m2,2),decimal.mark = ',',big.mark = '.')}),'/M²'),
                     style="font-size: 150%;"
-                )
+                ),
+                icon = icon("comment-dollar"),
+                color = "red"
                 
                 
                 
         )})
     
     
-    output$caprate <- renderInfoBox({
-        infoBox(tags$p("Cap rate",style="font-size: 120%;"),
+    output$caprate <- renderValueBox({
+        valueBox(tags$p("Cap rate",style="font-size: 60%;"),
                 tags$p(
                     paste(suppressWarnings({format(round(data_est()[1]*100/data_est()[2],2),decimal.mark = ',',big.mark = '.')}),'% por mês'),
                     style="font-size: 150%;"
-                )
+                ),
+                icon = icon("percentage"),
+                color = "red"
                 
                 
                 
