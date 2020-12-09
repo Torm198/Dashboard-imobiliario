@@ -48,12 +48,14 @@ def_bairro <- function(bairro,imovel){
 bairros <- c("Noroeste","Asa Norte","Asa Sul","Lago Norte","Lago Sul")
 opcoes <- c('Aluguel',"Venda")
 
-analise <- readRDS('banco_shiny.RDS') %>% mutate(ID=1:n())
+analise <- readRDS('bancos tratados/banco_shiny.RDS') %>% mutate(ID=1:n())
 
 
 # banco da uniao
 
-
+uniao_aprovado <- readRDS('bancos tratados/uniao_aprovado.RDS')
+uniao_edital <- readRDS('bancos tratados/uniao_edital.RDS')
+uniao_processo <- readRDS('bancos tratados/uniao_processo.RDS')
 
 
 ############# Header do dashboard #####################
