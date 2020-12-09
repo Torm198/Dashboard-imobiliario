@@ -374,7 +374,7 @@ server <- function(input, output) {
                     paste('R$',suppressWarnings({format(round(data_est()[2]/input$m2,2),decimal.mark = ',',big.mark = '.')}),'/M²'),
                     style="font-size: 150%;"
                 ),
-                icon = icon("comment-alt-dollar"),
+                icon = icon("comments-dollar"),
                 color = "red"
                 
                 
@@ -398,7 +398,7 @@ server <- function(input, output) {
     
     
     output$caprate <- renderValueBox({
-        valueBox(tags$p("Cap rate",style="font-size: 60%;"),
+        valueBox(tags$p("Cap Rate",style="font-size: 60%;"),
                 tags$p(
                     paste(suppressWarnings({format(round(data_est()[1]*100/data_est()[2],2),decimal.mark = ',',big.mark = '.')}),'% por mês'),
                     style="font-size: 150%;"
