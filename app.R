@@ -206,7 +206,7 @@ corpo <- dashboardBody(
         
         #exploratoria
         tabItem('exp',
-                fluidRow(
+                fillPage(
                     # box(plotlyOutput('precos_aluguel')),
                     # box(plotlyOutput('precos_venda')),
                     # box(plotlyOutput('metragem')),
@@ -262,13 +262,13 @@ server <- function(input, output) {
     # 
     
     #grafico para distribuicao de metragem
-    output$metragem <- renderPlotly({
-        plot_ly(data = banco_filtro(),x=~area_util_m2,type = 'histogram',bingroup=1) %>%
-            layout(title= 'Distribuição de metragem',
-                   xaxis=list(title='Área Útil em metros quadrados'),
-                   bargap=0.1)
-        
-    })
+    # output$metragem <- renderPlotly({
+    #     plot_ly(data = banco_filtro(),x=~area_util_m2,type = 'histogram',bingroup=1) %>%
+    #         layout(title= 'Distribuição de metragem',
+    #                xaxis=list(title='Área Útil em metros quadrados'),
+    #                bargap=0.1)
+    #     
+    # })
     
     ########gerar o mapa#############
     output$mapa <-  renderLeaflet({
