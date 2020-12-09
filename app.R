@@ -366,10 +366,12 @@ server <- function(input, output) {
         )})
     
     
-    output$compara <- renderValueBox({
-        valueBox(tags$p("Comparação",style="font-size: 60%;"),
+
+    output$compara <- renderInfoBox({
+        infoBox(tags$p("valor da venda/m²",style="font-size: 120%;"),
+
                 tags$p(
-                    paste('R$',suppressWarnings({format(data_diff(),decimal.mark = ',',big.mark = '.')})),
+                    paste('R$',suppressWarnings({format(round(data_est()[2]/input$m2,2),decimal.mark = ',',big.mark = '.')}),'/M²'),
                     style="font-size: 150%;"
                 ),
                 icon = icon("coins"),
