@@ -149,14 +149,6 @@ menu_lateral <- dashboardSidebar(
                          2, min = 0)
         
     ),
-    conditionalPanel(
-        condition = "input.tabs == 'est' ",
-        numericInput(
-            "alug",
-            "Aluguel a ser comparado R$",
-            value = 1000,
-            min = 0)
-    ),
     
     # uniao
     conditionalPanel(
