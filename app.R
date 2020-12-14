@@ -2,10 +2,9 @@ require(shiny)
 require(leaflet)
 require(shinydashboard)
 require(tidyverse)
-require(plotly)
 require(fresh)
 require(readxl)
-
+require(DT)
 
 meu_tema <- create_theme(
     adminlte_color(
