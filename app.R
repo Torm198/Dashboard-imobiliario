@@ -4,6 +4,8 @@ require(shinydashboard)
 require(tidyverse)
 require(plotly)
 require(fresh)
+require(readxl)
+
 
 meu_tema <- create_theme(
     adminlte_color(
@@ -67,7 +69,9 @@ uniao_aprovado <- readRDS('bancos tratados/uniao_aprovado.RDS')
 uniao_edital <- readRDS('bancos tratados/uniao_edital.RDS')
 uniao_processo <- readRDS('bancos tratados/uniao_processo.RDS')
 
-
+processo <- read_excel("uniao.xlsx",sheet="processo")
+aprovado <- read_excel("uniao.xlsx",sheet="aprovados")
+edital <- read_excel("uniao.xlsx",sheet="edital")
 ############# Header do dashboard #####################
 title <- tags$a(href='https://www.google.com',
                 icon("building"),
@@ -465,7 +469,7 @@ server <- function(input, output) {
     )
     
     
-    output$tabela <- renderDataTable(uniao_filtro())
+    output$tabela <- renderDataTable(uniao_filtro(),option = list(pageLength=50, scrollY='780px'))
     
     
     
