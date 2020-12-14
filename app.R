@@ -456,13 +456,7 @@ server <- function(input, output) {
                 uniao_edital$`Preço Sugerido` <- sugerido
                 uniao_edital$`Comparação (R$)` <- diferenca
                 uniao_edital$`Comparação (%)` <- paste(round((diferenca/sugerido)*100,1),"%",sep="")
-                for (i in 1:nrow(uniao_edital)){
-                    if (uniao_edital$`Aluguel Estimado`[i] == "Não se aplica"){
-                        uniao_edital$`Cap Rate`[i] <- "Não se aplica"
-                    } else {
-                        uniao_edital$`Cap Rate` <- paste(round((as.numeric(uniao_edital$`Aluguel Estimado`)/edital$precouniao)*100,1),"%",sep="")
-                    }
-                }
+                uniao_edital$`Cap Rate` <- paste(round((as.numeric(uniao_edital$`Aluguel Estimado`)/edital$precouniao)*100,1),"%",sep="")
                 uniao_edital[,-c(3,4)]
             }
         }

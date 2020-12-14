@@ -117,21 +117,13 @@ n=1
 
 for (n in 1:nrow(uniao_processo)){
   if (uniao_processo$Bairro[n] == "Asa Sul"){
-    if (uniao_processo$Condomínio[n] > 0){
       aluguel_sul_p <- modelo_aluguel_asa_sul[[1]][[1]] + modelo_aluguel_asa_sul[[1]][[2]]*uniao_processo$Quartos[n]+
       modelo_aluguel_asa_sul[[1]][[3]]*uniao_processo$Condomínio[n]
       uniao_processo$`Aluguel Estimado`[n] <- round(exp(aluguel_sul_p),2)
-    } else {
-      uniao_processo$`Aluguel Estimado`[n] <- "Não se aplica"
-    }
   } else {
-    if (uniao_processo$Condomínio[n] > 0){
       aluguel_norte_p <- modelo_aluguel_asa_norte[[1]][[1]] + modelo_aluguel_asa_norte[[1]][[2]]*uniao_processo$`Área útil (m²)`[n]+
       modelo_aluguel_asa_norte[[1]][[3]]*uniao_processo$Condomínio[n] + modelo_aluguel_asa_norte[[1]][[4]]*uniao_processo$Vagas[n]
       uniao_processo$`Aluguel Estimado`[n] <- round(((0.3*aluguel_norte_p)+1)^(1/0.3),2)
-    } else {
-      uniao_processo$`Aluguel Estimado`[n] <- "Não se aplica"
-    }
   }
 }
 
@@ -185,21 +177,13 @@ l=1
 
 for (l in 1:nrow(uniao_edital)){
   if (uniao_edital$Bairro[l] == "Asa Sul"){
-    if (uniao_edital$Condomínio[l] > 0){
       aluguel_sul_e <- modelo_aluguel_asa_sul[[1]][[1]] + modelo_aluguel_asa_sul[[1]][[2]]*uniao_edital$Quartos[l]+
       modelo_aluguel_asa_sul[[1]][[3]]*uniao_edital$Condomínio[l]
       uniao_edital$`Aluguel Estimado`[l] <- round(exp(aluguel_sul_e),2)
-    } else {
-      uniao_edital$`Aluguel Estimado`[l] <- "Não se aplica"
-    }
   } else {
-    if (uniao_edital$Condomínio[l] > 0){
       aluguel_lago_e <- modelo_aluguel_lago_sul[[1]][[1]] + modelo_aluguel_lago_sul[[1]][[2]]*uniao_edital$`Área útil (m²)`[l]+
       modelo_aluguel_lago_sul[[1]][[3]]*uniao_edital$Quartos[l] + modelo_aluguel_lago_sul[[1]][[4]]*uniao_edital$Banheiros[l]
       uniao_edital$`Aluguel Estimado`[l] <- round(aluguel_lago_e,2)
-    } else {
-      uniao_edital$`Aluguel Estimado`[l] <- "Não se aplica"
-    }
   }
 }
 
