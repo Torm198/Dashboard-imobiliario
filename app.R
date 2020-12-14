@@ -407,29 +407,29 @@ server <- function(input, output) {
         if(input$status == "Em processo"){
             if(input$reforma == "R$420/m²"){
                 uniao_processo$`Preço Sugerido` <- uniao_processo$`Preço Estimado` - processo$ref1
-                uniao_processo$`Cap Rate` <- paste(round((uniao_processo$`Aluguel Estimado`/uniao_processo$`Preço Sugerido`)*100,1),"%",sep="")
+                uniao_processo$`Cap Rate` <- paste(round((uniao_processo$`Aluguel Estimado`/uniao_processo$`Preço Sugerido`)*100,2),"%",sep="")
                 uniao_processo[,-c(4,5)]
             } else if (input$reforma == "R$550/m²"){
                 uniao_processo$`Preço Sugerido` <- uniao_processo$`Preço Estimado` - processo$ref2
-                uniao_processo$`Cap Rate` <- paste(round((uniao_processo$`Aluguel Estimado`/uniao_processo$`Preço Sugerido`)*100,1),"%",sep="")
+                uniao_processo$`Cap Rate` <- paste(round((uniao_processo$`Aluguel Estimado`/uniao_processo$`Preço Sugerido`)*100,2),"%",sep="")
                 uniao_processo[,-c(3,5)]
             } else {
                 uniao_processo$`Preço Sugerido` <- uniao_processo$`Preço Estimado` - processo$ref3
-                uniao_processo$`Cap Rate` <- paste(round((uniao_processo$`Aluguel Estimado`/uniao_processo$`Preço Sugerido`)*100,1),"%",sep="")
+                uniao_processo$`Cap Rate` <- paste(round((uniao_processo$`Aluguel Estimado`/uniao_processo$`Preço Sugerido`)*100,2),"%",sep="")
                 uniao_processo[,-c(3,4)]
             }
         } else if (input$status == "Aprovado"){
             if(input$reforma == "R$420/m²"){
                 uniao_aprovado$`Preço Sugerido` <- uniao_aprovado$`Preço Estimado` - aprovado$ref1
-                uniao_aprovado$`Cap Rate` <- paste(round((uniao_aprovado$`Aluguel Estimado`/uniao_aprovado$`Preço Sugerido`)*100,1),"%",sep="")
+                uniao_aprovado$`Cap Rate` <- paste(round((uniao_aprovado$`Aluguel Estimado`/uniao_aprovado$`Preço Sugerido`)*100,2),"%",sep="")
                 uniao_aprovado[,-c(4,5)]
             } else if (input$reforma == "R$550/m²"){
                 uniao_aprovado$`Preço Sugerido` <- uniao_aprovado$`Preço Estimado` - aprovado$ref2
-                uniao_aprovado$`Cap Rate` <- paste(round((uniao_aprovado$`Aluguel Estimado`/uniao_aprovado$`Preço Sugerido`)*100,1),"%",sep="")
+                uniao_aprovado$`Cap Rate` <- paste(round((uniao_aprovado$`Aluguel Estimado`/uniao_aprovado$`Preço Sugerido`)*100,2),"%",sep="")
                 uniao_aprovado[,-c(3,5)]
             } else {
                 uniao_aprovado$`Preço Sugerido` <- uniao_aprovado$`Preço Estimado` - aprovado$ref3
-                uniao_aprovado$`Cap Rate` <- paste(round((uniao_aprovado$`Aluguel Estimado`/uniao_aprovado$`Preço Sugerido`)*100,1),"%",sep="")
+                uniao_aprovado$`Cap Rate` <- paste(round((uniao_aprovado$`Aluguel Estimado`/uniao_aprovado$`Preço Sugerido`)*100,2),"%",sep="")
                 uniao_aprovado[,-c(3,4)]
             }
         } else {
