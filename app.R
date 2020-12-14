@@ -55,7 +55,7 @@ def_bairro <- function(bairro,imovel){
 
 
 # banco do wi imoveis
-bairros <- c("Noroeste","Asa Norte","Asa Sul","Lago Norte","Lago Sul")
+bairros <- c("Asa Norte","Asa Sul","Lago Sul")
 opcoes <- c('Aluguel',"Venda")
 
 analise <- readRDS('bancos tratados/banco_shiny.RDS') %>% mutate(ID=1:n())
