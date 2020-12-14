@@ -439,7 +439,7 @@ server <- function(input, output) {
                 uniao_edital$`Preço Sugerido` <- sugerido
                 uniao_edital$`Comparação (R$)` <- diferenca
                 uniao_edital$`Comparação (%)` <- paste(round((diferenca/sugerido)*100,1),"%",sep="")
-                uniao_edital$`Cap Rate` <- paste(round((as.numeric(uniao_edital$`Aluguel Estimado`)/edital$precouniao)*100,1),"%",sep="")
+                uniao_edital$`Cap Rate` <- paste(round((as.numeric(uniao_edital$`Aluguel Estimado`)/edital$precouniao)*100,2),"%",sep="")
                 uniao_edital[,-c(4,5)]
             } else if (input$reforma == "R$550/m²"){
                 sugerido <- uniao_edital$`Preço Estimado` - edital$ref2
@@ -447,7 +447,7 @@ server <- function(input, output) {
                 uniao_edital$`Preço Sugerido` <- sugerido
                 uniao_edital$`Comparação (R$)` <- diferenca
                 uniao_edital$`Comparação (%)` <- paste(round((diferenca/sugerido)*100,1),"%",sep="")
-                uniao_edital$`Cap Rate` <- paste(round((as.numeric(uniao_edital$`Aluguel Estimado`)/edital$precouniao)*100,1),"%",sep="")
+                uniao_edital$`Cap Rate` <- paste(round((as.numeric(uniao_edital$`Aluguel Estimado`)/edital$precouniao)*100,2),"%",sep="")
                 uniao_edital[,-c(3,5)]
             } else {
                 sugerido <- uniao_edital$`Preço Estimado` - edital$ref3
@@ -455,7 +455,7 @@ server <- function(input, output) {
                 uniao_edital$`Preço Sugerido` <- sugerido
                 uniao_edital$`Comparação (R$)` <- diferenca
                 uniao_edital$`Comparação (%)` <- paste(round((diferenca/sugerido)*100,1),"%",sep="")
-                uniao_edital$`Cap Rate` <- paste(round((as.numeric(uniao_edital$`Aluguel Estimado`)/edital$precouniao)*100,1),"%",sep="")
+                uniao_edital$`Cap Rate` <- paste(round((as.numeric(uniao_edital$`Aluguel Estimado`)/edital$precouniao)*100,2),"%",sep="")
                 uniao_edital[,-c(3,4)]
             }
         }
