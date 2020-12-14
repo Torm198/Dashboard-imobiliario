@@ -1,5 +1,5 @@
 library(readxl)
-
+library(tidyverse)
 processo <- read_excel("uniao.xlsx",sheet="processo")
 aprovado <- read_excel("uniao.xlsx",sheet="aprovados")
 edital <- read_excel("uniao.xlsx",sheet="edital")
